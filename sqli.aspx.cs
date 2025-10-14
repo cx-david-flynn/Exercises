@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-//commen to tirgger scan
+//comment to trigger scan.  really need to use a spell checker ;)
 namespace CxCE_Demo
 {
     public partial class sqli : System.Web.UI.Page
