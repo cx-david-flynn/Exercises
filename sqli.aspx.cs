@@ -20,26 +20,42 @@ namespace CxCE_Demo
 
         private void getName(string ID)
         {
-            string username = "No name";
-            SqlConnection conn = new SqlConnection("Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=" + Constants.DB_PASSWORD + ";");
-            SqlCommand cmd = new SqlCommand();
-            SqlDataReader reader;
+           string username = "No name";
 
-            cmd.CommandText = "SELECT NAME FROM Users WHERE ID = " + ID;
-            cmd.CommandType = CommandType.Text;
-            cmd.Connection = conn;
+           string connectionString = "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=" + Constants.DB_PASSWORD + ";";
+    
+           using (SqlConnection conn = new SqlConnection(connectionString))
+           {
+               using (SqlCommand cmd = new SqlCommand())
+                {
+                    cmd.CommandText = "SELECT NAME FROM Users WHERE ID = @IDParam";
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Connection = conn;
+                    if (int.TryParse(ID, out int userId))
+                    {
+                        cmd.Parameters.Add("@IDParam", SqlDbType.Int).Value = userId;
+                    }
+                    else
+                    {
+                        message.Text = "Error: Invalid ID format.";
+                    }
 
-            conn.Open();
+                    conn.Open();
 
-            reader = cmd.ExecuteReader();
-            if (reader.HasRows)
-            {
-                username = reader["NAME"].ToString();
-                age = getAge(username);
-            }
+                    // Use 'using' for proper resource disposal (SqlDataReader)
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read()) // Use .Read() instead of .HasRows and then .Read()
+                        {
+                            username = reader["NAME"].ToString();
+                            age = getAge(username);
+                        }
+                    } // reader is closed and disposed here
+                } // cmd is disposed here
+            } // conn is closed and disposed here
 
-            message.Text = "Welcome " + username;
-            conn.Close();
+            string encodedUsername = System.Net.WebUtility.HtmlEncode(username);
+            message.Text = "Welcome " + encodedUsername;
         }
 
         private int getAge(string name)
